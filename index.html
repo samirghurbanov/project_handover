@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Qubit - LED Project Handover</title>
+    <style>
+      :root {
+        --bg: #0e1628;
+        --card: #1b2a47;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent2: #22d3ee;
+        --select-bg: #1b2a47;
+        --select-text: #e2e8f0;
+        --border-subtle: rgba(148, 163, 184, 0.4);
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      [data-theme="light"] {
+        --bg: #f3f6fb;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --accent: #0ea5e9;
+        --accent2: #06b6d4;
+        --select-bg: #ffffff;
+        --select-text: #0f172a;
+        --border-subtle: rgba(148, 163, 184, 0.6);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .content {
+        flex: 1;
+        padding: 28px 32px;
+        display: flex;
+        justify-content: center;
+      }
+      .content-inner {
+        width: 100%;
+        max-width: 1100px;
+      }
+      .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 16px;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .logo-inline {
+        width: 120px;
+        height: auto;
+        display: block;
+      }
+      .title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .subtitle {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .theme-toggle {
+        position: relative;
+        width: 80px;
+        height: 32px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+        cursor: pointer;
+        box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35);
+      }
+      [data-theme="light"] .theme-toggle {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.45);
+      }
+      .theme-toggle-thumb {
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        width: 50%;
+        border-radius: 999px;
+        background: linear-gradient(120deg, var(--accent), var(--accent2));
+        box-shadow: 0 10px 25px rgba(56, 189, 248, 0.35);
+        transition: transform 0.26s ease;
+      }
+      [data-theme="dark"] .theme-toggle-thumb {
+        transform: translateX(-15%);
+      }
+      [data-theme="light"] .theme-toggle-thumb {
+        transform: translateX(76%);
+      }
+      .theme-toggle-icon {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        text-align: center;
+        font-size: 18px;
+        transition: opacity 0.18s ease, transform 0.18s ease, color 0.2s ease;
+      }
+      .theme-toggle-icon.sun {
+        color: #f8d34a;
+      }
+      .theme-toggle-icon.moon {
+        color: #c7d2fe;
+      }
+      [data-theme="dark"] .theme-toggle-icon.sun {
+        opacity: 0.45;
+        transform: translateY(1px);
+      }
+      [data-theme="dark"] .theme-toggle-icon.moon {
+        opacity: 1;
+      }
+      [data-theme="light"] .theme-toggle-icon.sun {
+        opacity: 1;
+      }
+      [data-theme="light"] .theme-toggle-icon.moon {
+        opacity: 0.45;
+        transform: translateY(1px);
+      }
+      .card {
+        background: var(--card);
+        padding: 24px 22px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.5);
+      }
+      form {
+        display: grid;
+        gap: 16px;
+        margin-top: 8px;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 14px;
+      }
+      input,
+      select,
+      textarea {
+        padding: 11px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-subtle);
+        background-color: transparent;
+        color: var(--select-text);
+        font: inherit;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease,
+          background-color 0.18s ease;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+      }
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+
+      /* force transparent autofill backgrounds */
+      input:-webkit-autofill,
+      select:-webkit-autofill,
+      textarea:-webkit-autofill {
+        box-shadow: 0 0 0px 1000px transparent inset !important;
+        -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+        -webkit-text-fill-color: var(--select-text);
+        transition: background-color 9999s ease-in-out 0s;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+      }
+      .btn-primary {
+        background: linear-gradient(120deg, var(--accent), var(--accent2));
+        padding: 12px 22px;
+        border-radius: 999px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        color: #0b1221;
+        font-size: 14px;
+        justify-self: flex-end;
+        min-width: 170px;
+        box-shadow: 0 14px 35px rgba(56, 189, 248, 0.45);
+        transition: transform 0.1s ease, box-shadow 0.18s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 40px rgba(56, 189, 248, 0.6);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.35);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--accent);
+        border-radius: 999px;
+        border: 1px solid var(--accent);
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-ghost span.icon {
+        font-size: 15px;
+      }
+      .preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .preview-item {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+      }
+      .preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .remove-thumb-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: rgba(239, 68, 68, 0.95);
+        border: none;
+        color: #fff;
+        padding: 0 8px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .technician-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .remove-tech-btn {
+        background: rgba(239, 68, 68, 0.95);
+        border: none;
+        color: #fff;
+        padding: 0 10px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+        height: 32px;
+        align-self: center;
+      }
+      .alert {
+        display: none;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .alert-success {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.5);
+        color: #bbf7d0;
+      }
+      [data-theme="light"] .alert-success {
+        color: #166534;
+      }
+      .alert-error {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.45);
+        color: #fecdd3;
+      }
+      [data-theme="light"] .alert-error {
+        color: #b91c1c;
+      }
+      .input-error {
+        border-color: rgba(239, 68, 68, 0.7) !important;
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.45) !important;
+      }
+      @media (max-width: 900px) {
+        body {
+          display: block;
+        }
+        .content {
+          padding: 18px 16px 24px;
+        }
+        .card {
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.6);
+        }
+      }
+      @media (max-width: 768px) {
+        .content {
+          padding: 16px 14px 22px;
+        }
+        .header-bar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .title {
+          font-size: 21px;
+        }
+        .subtitle {
+          font-size: 12px;
+        }
+        .row {
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+        .card {
+          padding: 18px 16px 18px;
+          border-radius: 12px;
+        }
+        .preview-item {
+          width: 82px;
+          height: 82px;
+        }
+        .btn-primary {
+          width: 100%;
+          justify-self: stretch;
+          text-align: center;
+          min-width: 0;
+        }
+        .btn-ghost {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+      @media (max-width: 520px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+        input,
+        select,
+        textarea {
+          font-size: 15px;
+        }
+        .btn-primary {
+          font-size: 13px;
+          padding: 12px 16px;
+        }
+        .preview-container {
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="content">
+      <div class="content-inner">
+        <div class="header-bar">
+          <div class="header-left">
+            <img src="logo-auPQwm7_.png" alt="Qubit logo" class="logo-inline" />
+            <div>
+              <h1 class="title">Project Handover</h1>
+              <p class="subtitle">
+                Enter the key details for the completed LED project.
+              </p>
+            </div>
+          </div>
+          <div class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <div class="theme-toggle-thumb"></div>
+            <div class="theme-toggle-icon sun">☀</div>
+            <div class="theme-toggle-icon moon">☾</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="statusSuccess" class="alert alert-success">
+            Submitted successfully.
+          </div>
+          <div id="statusError" class="alert alert-error">
+            Please fix the highlighted fields and try again.
+          </div>
+          <form
+            id="handoverForm"
+            action="https://oscar.easybot.cloud/webhook/79cf7206-c564-4c64-a569-513aab20d5d3"
+            method="POST"
+            enctype="multipart/form-data"
+            novalidate
+          >
+            <div class="row">
+              <label>
+                Client name
+                <input
+                  name="clientName"
+                  placeholder="e.g., City Center Mall"
+                  required
+                />
+              </label>
+              <label>
+                Project location
+                <input
+                  name="projectLocation"
+                  placeholder="e.g., Sheikh Zayed Road"
+                  required
+                />
+              </label>
+            </div>
+
+            <label>
+              Sender name (Quality checker)
+              <input name="senderName" placeholder="Your name" required />
+            </label>
+
+            <div class="row">
+              <label>
+                Pixel pitch
+                <select name="pixelPitch" required>
+                  <option value="">Select</option>
+                  <option value="P2.5">P2.5</option>
+                  <option value="P3">P3</option>
+                  <option value="P4">P4</option>
+                  <option value="P5">P5</option>
+                </select>
+              </label>
+              <label>
+                Screen size (sqm)
+                <input
+                  name="screenSize"
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  placeholder="e.g., 12.5"
+                  required
+                />
+              </label>
+            </div>
+
+            <label>
+              Technical notes (optional)
+              <textarea
+                name="technicalDetails"
+                placeholder="Controller model, mounting notes, etc."
+              ></textarea>
+            </label>
+
+            <label>
+              Project photos (max file size 50MB)
+              <input
+                id="photoInput"
+                type="file"
+                name="projectPhotos"
+                accept="image/*"
+                multiple
+                required
+              />
+              <div id="previewContainer" class="preview-container"></div>
+            </label>
+
+            <label>
+              Technicians
+              <div
+                id="technicianContainer"
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 8px;
+                  margin-top: 4px;
+                "
+              >
+                <div class="technician-row">
+                  <input
+                    name="technicians"
+                    placeholder="Technician name"
+                    required
+                  />
+                </div>
+              </div>
+              <button type="button" class="btn-ghost" id="addTechBtn">
+                <span class="icon">+</span>
+                <span>Add technician</span>
+              </button>
+            </label>
+
+            <button type="submit" class="btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        const root = document.documentElement;
+        const themeToggle = document.getElementById("themeToggle");
+        const currentTheme = localStorage.getItem("theme") || "dark";
+        applyTheme(currentTheme);
+        function applyTheme(theme) {
+          root.setAttribute("data-theme", theme);
+          localStorage.setItem("theme", theme);
+        }
+        themeToggle.addEventListener("click", () => {
+          const nextTheme =
+            root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          applyTheme(nextTheme);
+        });
+
+        const form = document.getElementById("handoverForm");
+        const statusSuccess = document.getElementById("statusSuccess");
+        const statusError = document.getElementById("statusError");
+        const submitBtn = document.querySelector(".btn-primary");
+        const technicianContainer = document.getElementById(
+          "technicianContainer"
+        );
+        const addTechBtn = document.getElementById("addTechBtn");
+        const photoInput = document.getElementById("photoInput");
+        const previewContainer = document.getElementById("previewContainer");
+
+        addTechBtn.addEventListener("click", () => {
+          const row = document.createElement("div");
+          row.className = "technician-row";
+          row.innerHTML = `
+          <input name="technicians" placeholder="Technician name" required />
+          <button type="button" class="remove-tech-btn" aria-label="Remove technician">×</button>
+        `;
+          technicianContainer.appendChild(row);
+        });
+
+        technicianContainer.addEventListener("click", (e) => {
+          if (e.target.classList.contains("remove-tech-btn")) {
+            e.target.parentElement.remove();
+          }
+        });
+
+        photoInput.addEventListener("change", () => {
+          previewContainer.innerHTML = "";
+          const files = Array.from(photoInput.files);
+          files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const div = document.createElement("div");
+              div.className = "preview-item";
+              div.innerHTML = `
+              <img src="${reader.result}" alt="photo preview" />
+              <button type="button" class="remove-thumb-btn" data-index="${index}" aria-label="Remove photo">×</button>
+            `;
+              previewContainer.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+          });
+        });
+
+        previewContainer.addEventListener("click", (e) => {
+          if (!e.target.classList.contains("remove-thumb-btn")) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const removeIndex = Number(e.target.getAttribute("data-index"));
+          const dt = new DataTransfer();
+          Array.from(photoInput.files).forEach((file, idx) => {
+            if (idx !== removeIndex) dt.items.add(file);
+          });
+          photoInput.files = dt.files;
+          photoInput.dispatchEvent(new Event("change"));
+        });
+
+        let statusHideTimeout;
+        function clearStatus() {
+          statusSuccess.style.display = "none";
+          statusError.style.display = "none";
+          clearTimeout(statusHideTimeout);
+        }
+        function showStatus(el, msg, hideAfterMs = 0) {
+          clearStatus();
+          el.textContent = msg;
+          el.style.display = "block";
+          if (hideAfterMs) {
+            statusHideTimeout = setTimeout(() => {
+              el.style.display = "none";
+            }, hideAfterMs);
+          }
+        }
+        function validateForm() {
+          clearStatus();
+          let valid = true;
+          const requiredFields = [
+            "clientName",
+            "projectLocation",
+            "senderName",
+            "pixelPitch",
+            "screenSize",
+          ];
+          requiredFields.forEach((name) => {
+            const field = form.elements[name];
+            if (!field) return;
+            field.classList.remove("input-error");
+            const value = field.value ? field.value.trim() : "";
+            if (!value || (name === "screenSize" && Number(value) <= 0)) {
+              field.classList.add("input-error");
+              valid = false;
+            }
+          });
+          const techInputs = Array.from(
+            form.querySelectorAll('input[name="technicians"]')
+          );
+          techInputs.forEach((input) => input.classList.remove("input-error"));
+          techInputs.forEach((input) => {
+            if (!input.value.trim()) {
+              input.classList.add("input-error");
+              valid = false;
+            }
+          });
+          if (!photoInput.files.length) {
+            photoInput.classList.add("input-error");
+            valid = false;
+          } else {
+            photoInput.classList.remove("input-error");
+          }
+          if (!valid)
+            showStatus(statusError, "Please fill the required fields.");
+          return valid;
+        }
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (!validateForm()) return;
+          submitBtn.disabled = true;
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = "Submitting...";
+          clearStatus();
+          try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+              method: form.method || "POST",
+              body: formData,
+            });
+            if (!response.ok) {
+              let bodyText = "";
+              try {
+                bodyText = await response.text();
+              } catch (textErr) {
+                bodyText = `<unable to read body: ${textErr}>`;
+              }
+              console.error("Submission failed", {
+                status: response.status,
+                statusText: response.statusText,
+                body: bodyText,
+              });
+              throw new Error("Submit failed");
+            }
+            showStatus(statusSuccess, "Submitted successfully.", 4000);
+            form.reset();
+            previewContainer.innerHTML = "";
+            photoInput.value = "";
+            technicianContainer.innerHTML = "";
+            const row = document.createElement("div");
+            row.className = "technician-row";
+            row.innerHTML = `<input name="technicians" placeholder="Technician name" required />`;
+            technicianContainer.appendChild(row);
+          } catch (err) {
+            console.error("Submit error", err);
+            showStatus(statusError, "An error occurred. Please try again.");
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
